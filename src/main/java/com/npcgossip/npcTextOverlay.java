@@ -81,47 +81,52 @@ public class npcTextOverlay extends Overlay {
 
         // Check if the NPC already has cached dialogue
         if (!npcDialogueCache.containsKey(npcId)) {
-            // Check if the NPC should speak based on probability
-            if (random.nextDouble() <= speakProbability) {
-                // Generate new dialogue and cache it if the NPC should speak
-                String newDialogue = npcDialogue.getRandomGoblinDialogue(playerName); // Replace with appropriate NPC type if needed
-                npcDialogueCache.put(npcId, newDialogue);
-            } else {
-                // If the NPC doesn't speak, cache a "silent" state (null or empty string)
-                npcDialogueCache.put(npcId, null);
-            }
+
+            npcDialogue npcDialogue = npcDialogueFactory.getNpcDialogue(npc.getName());
+            String newDialogue = (npcDialogue != null) ? npcDialogue.getDialogue(playerName) : null;
+
+            // Cache the dialogue (or null for silent NPCs)
+            npcDialogueCache.put(npcId, newDialogue);
         }
 
-        // Return the cached dialogue for this NPC
+        // Return the cached dialogue for this NPC (or null if silent)
         return npcDialogueCache.get(npcId);
     }
+
+
 
     private void renderNpcText(Graphics2D graphics, NPC npc, String text) {
         LocalPoint npcLocation = npc.getLocalLocation();
 
-        // Use LocalPoint directly here to get the canvas position
+        // Recalculate the canvas position every frame, using the logical height to keep the text above the NPC
         Point canvasPoint = Perspective.getCanvasTextLocation(client, graphics, npcLocation, text, npc.getLogicalHeight());
 
         if (canvasPoint != null) {
-            graphics.setFont(new Font("Arial", Font.BOLD, 12));
-            graphics.setColor(Color.WHITE);
+            // Set font settings (bold, 14pt Arial or similar)
+            graphics.setFont(new Font("Arial", Font.BOLD, 16));
+            graphics.setColor(Color.YELLOW);
 
-            // Draw the text at the canvas point
-            graphics.drawString(text, canvasPoint.getX(), canvasPoint.getY());
+            // Measure the width of the text for centering
+            FontMetrics metrics = graphics.getFontMetrics();
+            int textWidth = metrics.stringWidth(text);
+
+            // Adjust X position to center the text above the NPC
+            int x = canvasPoint.getX() + textWidth / 2;
+            int y = canvasPoint.getY();
+
+            // Draw the text, ensuring it stays centered and follows the NPC's head position dynamically
+            graphics.drawString(text, x, y);
         }
     }
+
 
     // Calculate the distance between the player and the NPC in tiles
     private int getDistance(LocalPoint playerLocation, LocalPoint npcLocation) {
         if (playerLocation == null || npcLocation == null) {
-            return Integer.MAX_VALUE; // Return a large number if null
+            return Integer.MAX_VALUE;
         }
-
-        // Get the tile coordinates from the local point
         int dx = playerLocation.getX() - npcLocation.getX();
         int dy = playerLocation.getY() - npcLocation.getY();
-
-        // Each tile is 128 units, so we divide by 128 to get tile distance
         return (int) Math.sqrt((dx * dx) + (dy * dy)) / 128;
     }
 }
