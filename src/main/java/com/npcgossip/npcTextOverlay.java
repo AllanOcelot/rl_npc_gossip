@@ -95,27 +95,11 @@ public class npcTextOverlay extends Overlay {
 
 
 
-    private void renderNpcText(Graphics2D graphics, NPC npc, String text) {
-        LocalPoint npcLocation = npc.getLocalLocation();
-
-        // Recalculate the canvas position every frame, using the logical height to keep the text above the NPC
-        Point canvasPoint = Perspective.getCanvasTextLocation(client, graphics, npcLocation, text, npc.getLogicalHeight());
-
-        if (canvasPoint != null) {
-            // Set font settings (bold, 14pt Arial or similar)
-            graphics.setFont(new Font("Arial", Font.BOLD, 16));
-            graphics.setColor(Color.YELLOW);
-
-            // Measure the width of the text for centering
-            FontMetrics metrics = graphics.getFontMetrics();
-            int textWidth = metrics.stringWidth(text);
-
-            // Adjust X position to center the text above the NPC
-            int x = canvasPoint.getX() + textWidth / 2;
-            int y = canvasPoint.getY();
-
-            // Draw the text, ensuring it stays centered and follows the NPC's head position dynamically
-            graphics.drawString(text, x, y);
+    // Runelite has an Actor function, and that's genuinely so helpful
+    private void renderNpcText(NPC npc, String text) {
+        if (npc != null && text != null && !text.isEmpty()) {
+            // Set the overhead text for the NPC
+            npc.setOverheadText(text);
         }
     }
 
